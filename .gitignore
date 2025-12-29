@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# ChromaDB and vector database
+chroma_db/
+*.sqlite3
+*.db
+
+# PDF files (optional - uncomment if you don't want to track PDFs)
+# pdfs/
+# *.pdf
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Model cache
+.cache/
+models/
+
+# PyTorch
+*.pt
+*.pth
+
+# Temporary files
+*.tmp
+tmp/
+temp/
