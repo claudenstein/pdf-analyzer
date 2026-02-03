@@ -2,7 +2,8 @@
 """
 Step 1 — Extract text from PDFs and EPUBs.
 
-Uses pdfplumber (best for scientific papers) with a pypdf fallback.
+Uses Docling (ML-based layout analysis, best for scientific papers)
+with a pdfplumber fallback for any files Docling cannot handle.
 EPUB support via ebooklib + BeautifulSoup.
 
 Usage:
@@ -15,13 +16,33 @@ import argparse
 from pathlib import Path
 from tqdm import tqdm
 
+from docling.document_converter import DocumentConverter
+
 
 # ---------------------------------------------------------------------------
 # Extractors
 # ---------------------------------------------------------------------------
 
+# Initialised once — loading Docling's models is expensive (~a few seconds).
+_converter: DocumentConverter | None = None
+
+
+def _get_converter() -> DocumentConverter:
+    global _converter
+    if _converter is None:
+        print("🤖 Initialising Docling models …  (one-time, may download on first run)")
+        _converter = DocumentConverter()
+    return _converter
+
+
+def extract_docling(path):
+    """Primary PDF extractor — ML layout analysis, structured Markdown output."""
+    result = _get_converter().convert(str(path))
+    return result.document.export_to_markdown()
+
+
 def extract_pdfplumber(path):
-    """Primary PDF extractor — handles tables and scientific layouts well."""
+    """Fallback PDF extractor — rule-based, no ML dependency at runtime."""
     import pdfplumber
     pages = []
     with pdfplumber.open(str(path)) as pdf:
@@ -32,24 +53,12 @@ def extract_pdfplumber(path):
     return "\n\n".join(pages)
 
 
-def extract_pypdf(path):
-    """Fallback PDF extractor."""
-    from pypdf import PdfReader
-    reader = PdfReader(str(path))
-    pages = []
-    for page in reader.pages:
-        t = page.extract_text()
-        if t:
-            pages.append(t)
-    return "\n\n".join(pages)
-
-
 def extract_pdf(path):
-    """Try pdfplumber first, fall back to pypdf."""
+    """Try Docling first, fall back to pdfplumber."""
     try:
-        return extract_pdfplumber(path)
+        return extract_docling(path)
     except Exception:
-        return extract_pypdf(path)
+        return extract_pdfplumber(path)
 
 
 def extract_epub(path):
@@ -85,14 +94,18 @@ def extract(path):
 # ---------------------------------------------------------------------------
 
 def clean_text(text):
-    """Remove common PDF artefacts."""
-    # Rejoin words broken by hyphenation at line ends
+    """Light cleanup pass.
+
+    Docling already handles hyphenation, page numbers, and layout ordering,
+    so these regexes mostly matter for the pdfplumber fallback path.
+    Running them on Docling output is harmless — they simply won't match.
+    """
+    # Rejoin words broken by hyphenation at line ends (pdfplumber fallback)
     text = re.sub(r"(\w+)-\s*\n\s*(\w+)", r"\1\2", text)
     # Collapse 3+ blank lines → 2
     text = re.sub(r"\n{3,}", "\n\n", text)
-    # Remove standalone page numbers
+    # Remove standalone page numbers (pdfplumber fallback)
     text = re.sub(r"^\s*\d{1,4}\s*$", "", text, flags=re.MULTILINE)
-    # Strip leading / trailing whitespace
     return text.strip()
 
 
