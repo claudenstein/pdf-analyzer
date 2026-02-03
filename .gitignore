@@ -69,3 +69,12 @@ models/
 *.tmp
 tmp/
 temp/
+
+# Fine-tuning artefacts
+finetune/extracted_text/
+finetune/dataset/
+finetune/lora_output/
+finetune/merged_model/
+finetune/llama.cpp/
+*.gguf
+Modelfile
