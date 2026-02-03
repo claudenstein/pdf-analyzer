@@ -46,11 +46,17 @@ PDF / EPUB files
 ```bash
 cd finetune
 
-# Default: scans ./pdfs recursively
+# Default: scans ./pdfs recursively, uses CUDA for Docling layout models
 python extract_text.py --input-dir ../pdfs
 
 # Multiple directories
 python extract_text.py --input-dir ../pdfs ../ebooks
+
+# CPU-only (no GPU required)
+python extract_text.py --input-dir ../pdfs --device cpu
+
+# Start fresh — ignore previous progress
+python extract_text.py --input-dir ../pdfs --no-resume
 ```
 
 **Key flags:**
@@ -60,6 +66,13 @@ python extract_text.py --input-dir ../pdfs ../ebooks
 | `--input-dir` | `./pdfs` | One or more directories to scan (PDF + EPUB) |
 | `--output-dir` | `./extracted_text` | Where cleaned `.txt` files are written |
 | `--min-length` | `200` | Files shorter than this (chars) are skipped |
+| `--device` | `cuda` | Inference device for Docling layout models (`cuda`, `cpu`, `auto`) |
+| `--no-resume` | — | Ignore previous progress and start from scratch |
+
+**Resume & crash recovery** — progress is saved to `.resume.json` after every file.
+If the process crashes (e.g. a segfault in Docling's native backend), it is detected
+on the next run and that file is automatically retried with the pdfplumber fallback.
+Logs are written to `extract.log` inside the output directory.
 
 ---
 
