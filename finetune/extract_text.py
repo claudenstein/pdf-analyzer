@@ -16,28 +16,44 @@ import argparse
 from pathlib import Path
 from tqdm import tqdm
 
-from docling.document_converter import DocumentConverter
+from docling.document_converter import DocumentConverter, PdfFormatOption
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.datamodel.accelerator_options import AcceleratorOptions
 
 
 # ---------------------------------------------------------------------------
 # Extractors
 # ---------------------------------------------------------------------------
 
-# Initialised once — loading Docling's models is expensive (~a few seconds).
-_converter: DocumentConverter | None = None
+
+def build_converter(device: str = "cuda") -> DocumentConverter:
+    """Create a DocumentConverter with explicit device placement.
+
+    device   "cuda"  → RTX 3070 (or any NVIDIA GPU)
+             "cpu"   → no GPU required
+             "auto"  → Docling picks the best available
+    """
+    print(f"🤖 Initialising Docling on {device} …  (may download models on first run)")
+
+    pdf_options = PdfPipelineOptions(
+        accelerator_options=AcceleratorOptions(
+            device=device,
+            # cuda_use_flash_attention2=True,   # extra speed on Ampere+
+            #                                   # needs: pip install flash-attn
+        ),
+    )
+
+    return DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_options),
+        }
+    )
 
 
-def _get_converter() -> DocumentConverter:
-    global _converter
-    if _converter is None:
-        print("🤖 Initialising Docling models …  (one-time, may download on first run)")
-        _converter = DocumentConverter()
-    return _converter
-
-
-def extract_docling(path):
+def extract_docling(path, converter: DocumentConverter):
     """Primary PDF extractor — ML layout analysis, structured Markdown output."""
-    result = _get_converter().convert(str(path))
+    result = converter.convert(str(path))
     return result.document.export_to_markdown()
 
 
@@ -53,10 +69,10 @@ def extract_pdfplumber(path):
     return "\n\n".join(pages)
 
 
-def extract_pdf(path):
+def extract_pdf(path, converter: DocumentConverter):
     """Try Docling first, fall back to pdfplumber."""
     try:
-        return extract_docling(path)
+        return extract_docling(path, converter)
     except Exception:
         return extract_pdfplumber(path)
 
@@ -78,12 +94,12 @@ def extract_epub(path):
     return "\n\n".join(chapters)
 
 
-def extract(path):
+def extract(path, converter: DocumentConverter):
     """Route to the correct extractor based on file extension."""
     suffix = path.suffix.lower()
-    if suffix in (".pdf",):
-        return extract_pdf(path)
-    elif suffix in (".epub",):
+    if suffix == ".pdf":
+        return extract_pdf(path, converter)
+    elif suffix == ".epub":
         return extract_epub(path)
     else:
         raise ValueError(f"Unsupported format: {suffix}")
@@ -124,6 +140,8 @@ def main():
                         help="Where to write .txt files (default: ./extracted_text)")
     parser.add_argument("--min-length", type=int, default=200,
                         help="Drop files shorter than this many characters (default: 200)")
+    parser.add_argument("--device", default="cuda", choices=["cuda", "cpu", "auto"],
+                        help="Inference device for Docling layout models (default: cuda)")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -142,13 +160,16 @@ def main():
 
     print(f"\n📚 Total files to extract: {len(all_files)}\n")
 
+    # --- build Docling converter once (model load is expensive) ---
+    converter = build_converter(args.device)
+
     # --- extract ---
     success = failed = skipped = 0
     total_chars = 0
 
     for src in tqdm(all_files, desc="Extracting"):
         try:
-            raw = extract(src)
+            raw = extract(src, converter)
             text = clean_text(raw)
 
             if len(text) < args.min_length:
