@@ -145,6 +145,20 @@ def build_converter(device: str = "cuda") -> DocumentConverter:
     """
     logger.info(f"Initialising Docling on {device} …")
 
+    # --- GPU sanity check (only when CUDA is requested) -----------------------
+    if device in ("cuda", "auto"):
+        try:
+            import torch
+            if torch.cuda.is_available():
+                gpu_name  = torch.cuda.get_device_name(0)
+                total_mem = torch.cuda.get_device_properties(0).total_mem / 1_073_741_824
+                logger.info(f"GPU detected : {gpu_name} ({total_mem:.1f} GB VRAM)")
+            else:
+                logger.warning("torch.cuda.is_available() → False  "
+                               "— Docling will fall back to CPU")
+        except ImportError:
+            logger.warning("torch not installed – cannot verify GPU availability")
+
     pdf_options = PdfPipelineOptions(
         accelerator_options=AcceleratorOptions(
             device=device,
