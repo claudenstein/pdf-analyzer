@@ -34,11 +34,10 @@ from datasets import Dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TrainingArguments,
     BitsAndBytesConfig,
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from trl import SFTTrainer
+from trl import SFTTrainer, SFTConfig
 
 
 # ---------------------------------------------------------------------------
@@ -162,7 +161,7 @@ def main():
     model.print_trainable_parameters()
 
     # ── training arguments ─────────────────────────────────────────────────
-    train_args = TrainingArguments(
+    train_args = SFTConfig(
         output_dir=args.output_dir,
 
         # --- core ---
@@ -197,6 +196,10 @@ def main():
 
         # --- resume ---
         resume_from_checkpoint=args.resume,
+
+        # --- SFT-specific (moved from SFTTrainer in trl >= 0.12) ---
+        max_length=args.max_seq_len,
+        packing=True,                     # concatenates examples → no wasted tokens
     )
 
     # ── trainer ────────────────────────────────────────────────────────────
@@ -208,8 +211,6 @@ def main():
         train_dataset=train_ds,
         eval_dataset=val_ds,
         processing_class=tokenizer,
-        max_seq_length=args.max_seq_len,
-        packing=True,                     # concatenates examples → no wasted tokens
     )
 
     trainer.train(resume_from_checkpoint=args.resume)
