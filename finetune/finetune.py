@@ -208,7 +208,6 @@ def main():
         train_dataset=train_ds,
         eval_dataset=val_ds,
         processing_class=tokenizer,
-        dataset_text_field="text",
         max_seq_length=args.max_seq_len,
         packing=True,                     # concatenates examples → no wasted tokens
     )
