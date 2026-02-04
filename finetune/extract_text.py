@@ -151,7 +151,7 @@ def build_converter(device: str = "cuda") -> DocumentConverter:
             import torch
             if torch.cuda.is_available():
                 gpu_name  = torch.cuda.get_device_name(0)
-                total_mem = torch.cuda.get_device_properties(0).total_mem / 1_073_741_824
+                total_mem = torch.cuda.get_device_properties(0).total_memory / 1_073_741_824
                 logger.info(f"GPU detected : {gpu_name} ({total_mem:.1f} GB VRAM)")
             else:
                 logger.warning("torch.cuda.is_available() → False  "
