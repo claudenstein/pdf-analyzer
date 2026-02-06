@@ -1,0 +1,23 @@
+# ── fine-tuning pipeline ──────────────────────────────────
+# Install with:  pip install -r finetune/requirements.txt
+
+# --- QLoRA / training core ---
+bitsandbytes>=0.41
+peft>=0.7
+trl>=0.7
+accelerate>=0.28
+datasets>=2.18
+safetensors>=0.4
+
+# --- model loading ---
+transformers>=4.36
+torch>=2.1          # must match your CUDA version; see PyTorch install page
+
+# --- PDF / EPUB extraction ---
+docling>=0.1                # ML-based layout analysis (primary PDF extractor)
+pdfplumber>=0.11            # rule-based fallback if Docling fails
+ebooklib>=0.15
+beautifulsoup4>=4.12
+
+# --- misc ---
+tqdm>=4.66

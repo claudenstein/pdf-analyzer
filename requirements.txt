@@ -1,0 +1,19 @@
+# Core dependencies
+langchain
+langchain-community
+pypdf
+chromadb
+
+# Embeddings
+sentence-transformers
+transformers
+torch
+
+# LLM
+ollama
+
+# Text processing
+tiktoken
+
+# Utilities
+tqdm
