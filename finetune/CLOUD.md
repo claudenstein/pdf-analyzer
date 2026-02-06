@@ -2,6 +2,8 @@
 
 Running the fine-tuning job on a cloud GPU cuts training time from **1 week locally** down to **4–12 hours** for $1–3.
 
+> **🚀 First time using vast.ai?** See **[VAST_QUICKSTART.md](VAST_QUICKSTART.md)** for a complete step-by-step walkthrough with every single click and command explained.
+
 ---
 
 ## Cost Comparison (2026 pricing)

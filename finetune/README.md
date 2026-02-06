@@ -3,8 +3,11 @@
 QLoRA fine-tune Mistral 7B on your scientific papers so it can write long-form
 content in that domain.  Designed for an **RTX 3070 (8 GB VRAM)** + 64 GB RAM.
 
-> **⚡ Training too slow locally?** See **[CLOUD.md](CLOUD.md)** for cloud GPU setup.
-> An RTX 3090 on vast.ai costs **~$0.13/hr** and cuts a 1-week local job down to **8 hours for $1**.
+> **⚡ Training too slow locally?** Use a cloud GPU instead:
+> - **First-time users:** See **[VAST_QUICKSTART.md](VAST_QUICKSTART.md)** for a complete beginner walkthrough
+> - **Already familiar with cloud GPUs?** See **[CLOUD.md](CLOUD.md)** for the quick reference
+>
+> An RTX 3090 on vast.ai costs **~$0.13/hr** and cuts a 1-week local job down to **8 hours for $1–2**.
 
 ---
 
