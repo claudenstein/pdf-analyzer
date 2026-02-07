@@ -136,12 +136,19 @@ def main():
 
     # ── load model ─────────────────────────────────────────────────────────
     print("📥 Loading model …  (first time downloads ~14 GB)\n")
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model,
-        quantization_config=bnb_cfg,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,
-    )
+
+    # Detect if we're in distributed mode (multi-GPU via accelerate)
+    is_distributed = torch.distributed.is_available() and torch.distributed.is_initialized()
+
+    # device_map='auto' conflicts with DDP, so only use it in single-GPU mode
+    model_kwargs = {
+        "quantization_config": bnb_cfg,
+        "torch_dtype": torch.bfloat16,
+    }
+    if not is_distributed:
+        model_kwargs["device_map"] = "auto"
+
+    model = AutoModelForCausalLM.from_pretrained(args.model, **model_kwargs)
 
     # ── tokeniser ──────────────────────────────────────────────────────────
     tokenizer = AutoTokenizer.from_pretrained(args.model, padding_side="right")
