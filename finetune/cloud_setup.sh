@@ -37,8 +37,13 @@ echo "✅ Verifying PyTorch + CUDA..."
 python3 -c "
 import torch
 if torch.cuda.is_available():
-    print(f'GPU detected: {torch.cuda.get_device_name(0)}')
-    print(f'VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB')
+    num_gpus = torch.cuda.device_count()
+    gpu_name = torch.cuda.get_device_name(0)
+    vram = torch.cuda.get_device_properties(0).total_memory / 1e9
+    print(f'{num_gpus}× {gpu_name}')
+    print(f'VRAM: {vram:.1f} GB per GPU')
+    if num_gpus > 1:
+        print(f'Total VRAM: {vram * num_gpus:.1f} GB')
 else:
     print('ERROR: CUDA not available in PyTorch')
     exit(1)
@@ -50,5 +55,7 @@ echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Upload your dataset/ folder to this instance"
-echo "  2. Run: python3 finetune.py"
+echo "  2. Training:"
+echo "     • Single GPU:  python3 finetune.py"
+echo "     • Multi-GPU:   ./train_multi_gpu.sh"
 echo "=========================================="

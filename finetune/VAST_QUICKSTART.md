@@ -237,8 +237,20 @@ val.jsonl
 
 ### Step 6.3: Start the fine-tuning job
 
+**If you have multiple GPUs (e.g., 2× RTX 3090):**
+```bash
+chmod +x train_multi_gpu.sh
+./train_multi_gpu.sh
+```
+
+**If you have a single GPU:**
 ```bash
 python3 finetune.py
+```
+
+**If you have a GPU with >20 GB VRAM, increase batch size for speed:**
+```bash
+python3 finetune.py --batch-size 4
 ```
 
 You'll see:
@@ -246,7 +258,7 @@ You'll see:
 ==========================================================
   QLoRA Fine-Tuning — Mistral 7B
 ==========================================================
-  GPU            NVIDIA GeForce RTX 3090  (24.0 GB)
+  GPUs           2× NVIDIA GeForce RTX 3090  (24.0 GB each)
   Model          mistralai/Mistral-7B-v0.1
   ...
 ```
@@ -260,7 +272,12 @@ Then training starts. You'll see progress like:
 ...
 ```
 
-**This runs for 8–12 hours.** You can now:
+**Training time:**
+- Single RTX 3090: ~8–12 hours
+- 2× RTX 3090 with multi-GPU script: ~4–6 hours
+- Single RTX 3090 with `--batch-size 4`: ~5–8 hours
+
+You can now:
 - **Close the terminal** (training keeps running in the background)
 - Or **keep it open** if you want to watch progress
 
