@@ -109,8 +109,14 @@ The script prints an **estimated training time** before it exits.
 ## Step 3 — Fine-tune (QLoRA)
 
 ```bash
-# Full run (expect 10-15 h per epoch on a 3070)
+# Single GPU (8 GB RTX 3070)
 python finetune.py
+
+# Multi-GPU (2× RTX 3090 on vast.ai, etc.) — ~2× faster
+./train_multi_gpu.sh
+
+# Cloud GPU with more VRAM? Increase batch size for speed
+python finetune.py --batch-size 4    # for 24 GB GPUs (3090, 4090)
 
 # Quick smoke test — finishes in ~5 min
 python finetune.py --epochs 1 --max-seq-len 256

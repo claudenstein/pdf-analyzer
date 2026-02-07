@@ -92,6 +92,7 @@ def main():
         print("❌ No CUDA GPU detected.")
         sys.exit(1)
 
+    num_gpus = torch.cuda.device_count()
     gpu_name = torch.cuda.get_device_name(0)
     vram_gb  = torch.cuda.get_device_properties(0).total_memory / 1e9
 
@@ -99,7 +100,7 @@ def main():
     print(f"\n{'=' * 58}")
     print(f"  QLoRA Fine-Tuning — Mistral 7B")
     print(f"{'=' * 58}")
-    print(f"  GPU            {gpu_name}  ({vram_gb:.1f} GB)")
+    print(f"  GPUs           {num_gpus}× {gpu_name}  ({vram_gb:.1f} GB each)")
     print(f"  Model          {args.model}")
     print(f"  Train file     {args.train_file}")
     print(f"  Val file       {args.val_file}")
@@ -109,7 +110,14 @@ def main():
     print(f"  Eff. batch     {args.batch_size * args.grad_accum}")
     print(f"  Seq length     {args.max_seq_len} tokens")
     print(f"  LoRA rank / α  {args.lora_rank} / {args.lora_alpha}")
-    print(f"{'=' * 58}\n")
+    print(f"{'=' * 58}")
+
+    if num_gpus > 1:
+        print(f"\n⚠️  Multi-GPU detected but running single-GPU mode.")
+        print(f"   For faster training, use: accelerate launch finetune.py")
+        print(f"   Expected speedup: ~{min(num_gpus * 0.85, num_gpus)}× faster\n")
+    else:
+        print()
 
     # ── datasets ───────────────────────────────────────────────────────────
     print("📂 Loading datasets …")
@@ -189,6 +197,9 @@ def main():
         eval_strategy="steps",
         eval_steps=200,
         load_best_model_at_end=True,
+
+        # --- multi-GPU (handled by accelerate if launched that way) ---
+        ddp_find_unused_parameters=False,
 
         # --- misc ---
         dataloader_pin_memory=False,      # avoids CUDA errors on laptops
